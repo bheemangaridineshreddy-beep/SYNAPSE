@@ -1,0 +1,1048 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SYNAPSE — Interactive Web Launchpad</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 18px;
+      background-color: #f1f5f9;
+      color: #0f172a;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 940px;
+      margin: 0 auto;
+    }
+
+    /* Interactive Web Portal / Launch Screen */
+    .portal-card {
+      background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+      border: 1px solid #cbd5e1;
+      border-radius: 16px;
+      padding: 28px 24px;
+      margin-top: 24px;
+      box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    }
+
+    .portal-badge {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 999px;
+      background-color: #e0f2fe;
+      border: 1px solid #7dd3fc;
+      color: #0369a1;
+      font-size: 12px;
+      font-weight: bold;
+      margin-bottom: 12px;
+    }
+
+    .portal-title {
+      margin: 0 0 8px 0;
+      font-size: 26px;
+      color: #0284c7;
+    }
+
+    .portal-sub {
+      margin: 0 0 20px 0;
+      font-size: 14px;
+      color: #334155;
+      line-height: 1.55;
+    }
+
+    .status-strip {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .pill-item {
+      background-color: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: #1e293b;
+    }
+
+    .pill-dot {
+      color: #16a34a;
+      font-weight: bold;
+      margin-right: 6px;
+    }
+
+    .scenario-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 22px;
+    }
+
+    .scenario-card {
+      flex: 1 1 240px;
+      background-color: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.15s ease, transform 0.15s ease, background-color 0.15s ease;
+    }
+
+    .scenario-card:hover {
+      border-color: #0284c7;
+      background-color: #f0f9ff;
+      transform: translateY(-1px);
+    }
+
+    .scenario-card.selected {
+      border-color: #16a34a;
+      background-color: #f0fdf4;
+    }
+
+    .scenario-name {
+      font-size: 14px;
+      font-weight: bold;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+
+    .scenario-desc {
+      font-size: 12px;
+      color: #475569;
+      line-height: 1.45;
+    }
+
+    .launch-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .launch-btn {
+      padding: 12px 20px;
+      font-size: 14px;
+      border-radius: 10px;
+      background-color: #16a34a;
+      color: #ffffff;
+      border: none;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .launch-btn:hover {
+      background-color: #15803d;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    /* Classroom App Styles */
+    .top-bar {
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    .top-bar h1 {
+      margin: 0;
+      font-size: 20px;
+      color: #0284c7;
+    }
+
+    .top-bar p {
+      margin: 4px 0 0 0;
+      font-size: 13px;
+      color: #475569;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .status-pill {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 12px;
+      background-color: #e2e8f0;
+      color: #334155;
+    }
+
+    .status-pill.occupied {
+      background-color: #dcfce7;
+      color: #15803d;
+      border: 1px solid #86efac;
+    }
+
+    .metrics {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .metric-box {
+      flex: 1 1 145px;
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 12px 14px;
+      box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03);
+    }
+
+    .metric-title {
+      font-size: 11px;
+      color: #64748b;
+      text-transform: uppercase;
+      font-weight: bold;
+    }
+
+    .metric-val {
+      font-size: 22px;
+      font-weight: bold;
+      margin-top: 4px;
+      color: #0f172a;
+    }
+
+    .metric-mode {
+      font-size: 11px;
+      color: #0284c7;
+      margin-top: 4px;
+      font-weight: bold;
+    }
+
+    .on-text {
+      color: #d97706;
+    }
+
+    .off-text {
+      color: #64748b;
+    }
+
+    .section {
+      background-color: #ffffff;
+      border: 1px solid #cbd5e1;
+      border-radius: 12px;
+      padding: 16px 18px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+    }
+
+    .section h2 {
+      margin: 0 0 12px 0;
+      font-size: 15px;
+      color: #0f172a;
+    }
+
+    .room-box {
+      background-color: #f8fafc;
+      border: 2px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .room-box.lit {
+      border-color: #eab308;
+      background-color: #fefce8;
+    }
+
+    .room-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      font-weight: bold;
+      margin-bottom: 10px;
+      color: #1e293b;
+    }
+
+    .people-list {
+      min-height: 36px;
+      font-size: 13px;
+      color: #1e293b;
+      padding: 8px;
+      background-color: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+    }
+
+    .roster-wrap {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .roll-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background-color: #ffffff;
+      border: 1px solid #94a3b8;
+      color: #0f172a;
+      font-size: 12px;
+      font-weight: bold;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+
+    .roll-exit-btn {
+      padding: 2px 6px;
+      font-size: 11px;
+      border-radius: 4px;
+      background-color: #dc2626;
+      color: #ffffff;
+    }
+
+    .roll-input {
+      padding: 8px 11px;
+      border-radius: 8px;
+      border: 1px solid #94a3b8;
+      background-color: #ffffff;
+      color: #0f172a;
+      font-size: 13px;
+      width: 185px;
+    }
+
+    .roll-input::placeholder {
+      color: #64748b;
+    }
+
+    .edge-box {
+      background-color: #f8fafc;
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #1e293b;
+    }
+
+    .privacy-note {
+      margin-top: 8px;
+      padding: 8px 10px;
+      background-color: #f0f9ff;
+      border-left: 3px solid #0284c7;
+      border-radius: 6px;
+      font-size: 12px;
+      color: #334155;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .btn-group:last-child {
+      margin-bottom: 0;
+    }
+
+    button {
+      padding: 9px 13px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #ffffff;
+      background-color: #475569;
+    }
+
+    button:hover {
+      opacity: 0.92;
+    }
+
+    .b-green { background-color: #16a34a; }
+    .b-red { background-color: #dc2626; }
+    .b-blue { background-color: #2563eb; }
+    .b-cyan { background-color: #0891b2; }
+    .b-orange { background-color: #ea580c; }
+    .b-purple { background-color: #7c3aed; }
+    .b-teal { background-color: #0d9488; }
+    .b-amber { background-color: #d97706; }
+
+    .feed-box {
+      background-color: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-left: 4px solid #7c3aed;
+      padding: 12px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #1e293b;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .alert-box {
+      background-color: #eff6ff;
+      border: 1px solid #93c5fd;
+      color: #1e3a8a;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .alert-box.warn {
+      background-color: #fef2f2;
+      border-color: #fca5a5;
+      color: #991b1b;
+    }
+
+    .log-list {
+      margin: 0;
+      padding-left: 18px;
+      font-size: 13px;
+      color: #334155;
+    }
+
+    .log-list li {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Interactive Web Opening Screen -->
+    <div id="launchPortal" class="portal-card">
+      <div class="portal-badge">INTERACTIVE WEB SESSION READY</div>
+      <h1 class="portal-title">SYNAPSE — Smart Classroom Web Portal</h1>
+      <p class="portal-sub">
+        Welcome to the interactive web workspace. Choose how you want to open <strong>Room 101</strong>—start with an empty room, verify a teacher on entry, or load a full class session with roll-number tracking.
+      </p>
+
+      <div class="status-strip">
+        <div class="pill-item"><span class="pill-dot">●</span>Edge Node: Online</div>
+        <div class="pill-item"><span class="pill-dot">●</span>Roll Detector: Active</div>
+        <div class="pill-item"><span class="pill-dot">●</span>Raw Video Stored: NO</div>
+      </div>
+
+      <div class="scenario-grid">
+        <button type="button" class="scenario-card selected" data-scenario="empty">
+          <div class="scenario-name">1. Empty Classroom</div>
+          <div class="scenario-desc">Open Room 101 in idle mode (0 students, lights &amp; fans off) and test entries from scratch.</div>
+        </button>
+
+        <button type="button" class="scenario-card" data-scenario="teacher-entry">
+          <div class="scenario-name">2. Teacher Arrives First</div>
+          <div class="scenario-desc">Open with Ms. Rao (STF-101) verified inside, auto lights on, and 3 students (R-01 to R-03).</div>
+        </button>
+
+        <button type="button" class="scenario-card" data-scenario="full-class">
+          <div class="scenario-name">3. Active 25-Student Class (30°C)</div>
+          <div class="scenario-desc">Open with Rolls R-01 through R-25 inside at 30°C so you can immediately test roll-number exit alerts.</div>
+        </button>
+      </div>
+
+      <div class="launch-bar">
+        <button type="button" class="launch-btn" data-action="open-web-app">Open Interactive Classroom →</button>
+      </div>
+    </div>
+
+    <!-- Interactive Classroom Application -->
+    <div id="classroomApp" class="hidden">
+      <div class="top-bar">
+        <div>
+          <h1>SYNAPSE — Smart Classroom</h1>
+          <p>Edge Staff Recognition + Roll-No Student Tracking, Climate &amp; Remote Override</p>
+        </div>
+        <div class="top-actions">
+          <span id="roomBadge" class="status-pill">EMPTY</span>
+          <button type="button" data-action="back-to-portal">← Web Portal</button>
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric-box">
+          <div class="metric-title">Students</div>
+          <div id="studentCount" class="metric-val">0</div>
+          <div id="lastRollInfo" class="metric-mode">LAST ROLL: NONE</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-title">Teacher</div>
+          <div id="teacherStatus" class="metric-val off-text">NO</div>
+          <div id="teacherIdentity" class="metric-mode">ID: UNVERIFIED</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-title">Lights</div>
+          <div id="lightStatus" class="metric-val off-text">OFF</div>
+          <div id="lightMode" class="metric-mode">MODE: AUTO</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-title">Fans</div>
+          <div id="fanStatus" class="metric-val off-text">OFF</div>
+          <div id="fanMode" class="metric-mode">MODE: AUTO</div>
+        </div>
+        <div class="metric-box">
+          <div class="metric-title">Temperature</div>
+          <div class="metric-val"><span id="tempVal">26</span>°C</div>
+          <div class="metric-mode">FAN RULE: greater than 23°C</div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Edge Camera Entry Node (Local Staff &amp; Roll-No Detection)</h2>
+        <div id="edgeTelemetry" class="edge-box">
+          <strong>Edge Node Status:</strong> Idle • Local Staff DB loaded (2 enrolled teachers) • Raw Video Stored: <strong>NO (Metadata Only)</strong>
+        </div>
+        <div class="btn-group">
+          <button type="button" class="b-blue" data-action="edge-rao">Edge Scan: Ms. Rao (Teacher)</button>
+          <button type="button" class="b-blue" data-action="edge-nair">Edge Scan: Mr. Nair (Teacher)</button>
+          <button type="button" class="b-amber" data-action="edge-unknown">Edge Scan: Unrecognized / Low Light</button>
+          <button type="button" class="b-amber" data-action="edge-exit-staff">Edge Scan: Staff Exit</button>
+        </div>
+        <div class="privacy-note">
+          <strong>Governance &amp; Privacy Note:</strong> Matching happens locally at the doorway against an enrolled staff directory (<code>role: "teacher"</code>) and student roll tags without uploading raw camera footage to the cloud. Schools still require explicit consent, fallback rules for poor lighting/angles, and strict data retention policies.
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Live Classroom Room View &amp; Controls</h2>
+        <div id="roomView" class="room-box">
+          <div class="room-header">
+            <span>ROOM 101</span>
+            <span id="roomGearText">Lights: OFF | Fans: OFF</span>
+          </div>
+          <div id="occupantsText" class="people-list">Nobody is inside the classroom.</div>
+          <div id="studentRoster" class="roster-wrap"></div>
+        </div>
+
+        <div class="btn-group">
+          <input id="rollInput" class="roll-input" type="text" placeholder="Roll No. (e.g. R-05 or 12)" aria-label="Student Roll Number">
+          <button type="button" class="b-green" data-action="enter">+1 Student Enter</button>
+          <button type="button" class="b-red" data-action="exit">-1 Student Exit (Alert Roll)</button>
+          <button type="button" class="b-blue" data-action="teacher">Manual Teacher In / Out</button>
+        </div>
+
+        <div class="btn-group">
+          <button type="button" class="b-cyan" data-action="cold">Cold (20°C)</button>
+          <button type="button" class="b-orange" data-action="warm">Warm (32°C)</button>
+          <button type="button" class="b-blue" data-action="auto">Auto Mode</button>
+        </div>
+
+        <div class="btn-group">
+          <button type="button" class="b-purple" data-action="phone-lights">Phone: Lights ON/OFF</button>
+          <button type="button" class="b-purple" data-action="phone-fans">Phone: Fans ON/OFF</button>
+        </div>
+
+        <div class="btn-group">
+          <button type="button" class="b-teal" data-action="preset">Preset: 25 Students, 30°C</button>
+          <button type="button" class="b-red" data-action="reset">Reset Room</button>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Teacher Phone Live Feed &amp; Alerts</h2>
+        <div id="phoneFeed" class="feed-box"></div>
+        <div id="alertBanner" class="alert-box">Interactive web session active.</div>
+      </div>
+
+      <div class="section">
+        <h2>Recent Activity Log (Last 8)</h2>
+        <ul id="logList" class="log-list"></ul>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var enrolledStaff = {
+        "STF-101": { name: "Ms. Rao", role: "teacher", confidence: "98.4%" },
+        "STF-102": { name: "Mr. Nair", role: "teacher", confidence: "97.9%" }
+      };
+
+      var selectedScenario = "empty";
+
+      var state = {
+        students: [],
+        nextRollNum: 1,
+        lastRollEvent: "NONE",
+        teacher: false,
+        activeTeacherName: null,
+        unknownVisitors: 0,
+        temp: 26,
+        lights: false,
+        fans: false,
+        manualLights: false,
+        manualFans: false,
+        lastEdgeEvent: "Idle • Local Staff DB loaded • Raw Video Stored: NO",
+        logs: []
+      };
+
+      function formatRoll(num) {
+        return "R-" + String(num).padStart(2, "0");
+      }
+
+      function normalizeRollInput(raw) {
+        var cleaned = String(raw || "").trim().toUpperCase();
+        if (!cleaned) return null;
+        if (/^\d+$/.test(cleaned)) {
+          return formatRoll(parseInt(cleaned, 10));
+        }
+        return cleaned;
+      }
+
+      function getNextAvailableRoll() {
+        while (true) {
+          var candidate = formatRoll(state.nextRollNum);
+          state.nextRollNum += 1;
+          if (state.students.indexOf(candidate) === -1) {
+            return candidate;
+          }
+        }
+      }
+
+      function isOccupied() {
+        return state.students.length > 0 || state.teacher || state.unknownVisitors > 0;
+      }
+
+      function addLog(text) {
+        var now = new Date().toLocaleTimeString();
+        state.logs.unshift("[" + now + "] " + text);
+        if (state.logs.length > 8) {
+          state.logs.pop();
+        }
+        var ul = document.getElementById("logList");
+        if (!ul) return;
+        ul.innerHTML = "";
+        for (var i = 0; i < state.logs.length; i++) {
+          var li = document.createElement("li");
+          li.textContent = state.logs[i];
+          ul.appendChild(li);
+        }
+      }
+
+      function showAlert(msg, warn) {
+        var box = document.getElementById("alertBanner");
+        if (!box) return;
+        box.textContent = msg;
+        box.className = warn ? "alert-box warn" : "alert-box";
+      }
+
+      function exitStudentByRoll(rollNo) {
+        var idx = state.students.indexOf(rollNo);
+        if (idx === -1) {
+          showAlert("Roll No. " + rollNo + " is not currently inside Room 101.", true);
+          return;
+        }
+        state.students.splice(idx, 1);
+        state.lastRollEvent = "OUT: " + rollNo;
+        state.lastEdgeEvent = "Student exit detected — Roll No. " + rollNo;
+        addLog("Student Roll No. " + rollNo + " exited Room 101 (Remaining: " + state.students.length + ").");
+        showAlert("ALERT: Student Roll No. " + rollNo + " exited the classroom! (" + state.students.length + " student(s) remaining)", true);
+        render();
+      }
+
+      function renderRoster() {
+        var rosterEl = document.getElementById("studentRoster");
+        if (!rosterEl) return;
+        rosterEl.innerHTML = "";
+        for (var i = 0; i < state.students.length; i++) {
+          var roll = state.students[i];
+          var chip = document.createElement("span");
+          chip.className = "roll-chip";
+          chip.textContent = roll + " ";
+
+          var btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "roll-exit-btn";
+          btn.textContent = "Exit";
+          btn.setAttribute("data-action", "exit-roll");
+          btn.setAttribute("data-roll", roll);
+
+          chip.appendChild(btn);
+          rosterEl.appendChild(chip);
+        }
+      }
+
+      function render() {
+        var occupied = isOccupied();
+
+        if (!occupied) {
+          state.lights = false;
+          state.fans = false;
+          state.manualLights = false;
+          state.manualFans = false;
+          state.activeTeacherName = null;
+        } else {
+          if (!state.manualLights) {
+            state.lights = true;
+          }
+          if (!state.manualFans) {
+            state.fans = state.temp > 23;
+          }
+        }
+
+        var badge = document.getElementById("roomBadge");
+        if (badge) {
+          badge.textContent = occupied ? "OCCUPIED" : "EMPTY";
+          badge.className = occupied ? "status-pill occupied" : "status-pill";
+        }
+
+        var studentCountEl = document.getElementById("studentCount");
+        if (studentCountEl) studentCountEl.textContent = String(state.students.length);
+
+        var lastRollEl = document.getElementById("lastRollInfo");
+        if (lastRollEl) lastRollEl.textContent = "LAST ROLL: " + state.lastRollEvent;
+
+        var tEl = document.getElementById("teacherStatus");
+        var tIdEl = document.getElementById("teacherIdentity");
+        if (tEl) {
+          tEl.textContent = state.teacher ? "YES" : "NO";
+          tEl.className = state.teacher ? "metric-val on-text" : "metric-val off-text";
+        }
+        if (tIdEl) {
+          tIdEl.textContent = state.teacher
+            ? ("ID: " + (state.activeTeacherName || "VERIFIED TEACHER"))
+            : "ID: UNVERIFIED";
+        }
+
+        var lEl = document.getElementById("lightStatus");
+        var lMode = document.getElementById("lightMode");
+        if (lEl) {
+          lEl.textContent = state.lights ? "ON" : "OFF";
+          lEl.className = state.lights ? "metric-val on-text" : "metric-val off-text";
+        }
+        if (lMode) {
+          lMode.textContent = state.manualLights ? "MODE: MANUAL" : "MODE: AUTO";
+        }
+
+        var fEl = document.getElementById("fanStatus");
+        var fMode = document.getElementById("fanMode");
+        if (fEl) {
+          fEl.textContent = state.fans ? "ON" : "OFF";
+          fEl.className = state.fans ? "metric-val on-text" : "metric-val off-text";
+        }
+        if (fMode) {
+          fMode.textContent = state.manualFans ? "MODE: MANUAL" : "MODE: AUTO";
+        }
+
+        var tempEl = document.getElementById("tempVal");
+        if (tempEl) tempEl.textContent = String(state.temp);
+
+        var edgeEl = document.getElementById("edgeTelemetry");
+        if (edgeEl) {
+          edgeEl.innerHTML =
+            "<strong>Edge Node Event:</strong> " + state.lastEdgeEvent +
+            " • <strong>Raw Video Stored:</strong> NO (On-device role &amp; roll match only)";
+        }
+
+        var roomView = document.getElementById("roomView");
+        if (roomView) roomView.className = state.lights ? "room-box lit" : "room-box";
+
+        var gearText = document.getElementById("roomGearText");
+        if (gearText) {
+          gearText.textContent =
+            "Lights: " + (state.lights ? "ON" : "OFF") + " | Fans: " + (state.fans ? "ON" : "OFF");
+        }
+
+        var parts = [];
+        if (state.teacher) {
+          parts.push("Teacher inside (" + (state.activeTeacherName || "Verified") + ")");
+        }
+        if (state.students.length > 0) {
+          parts.push(state.students.length + " Student(s): " + state.students.join(", "));
+        }
+        if (state.unknownVisitors > 0) {
+          parts.push(state.unknownVisitors + " Unverified person(s)");
+        }
+        var occEl = document.getElementById("occupantsText");
+        if (occEl) {
+          occEl.textContent = parts.length > 0 ? parts.join(" • ") : "Nobody is inside the classroom.";
+        }
+
+        renderRoster();
+
+        var feedEl = document.getElementById("phoneFeed");
+        if (feedEl) {
+          feedEl.innerHTML =
+            "<strong>Remote Feed:</strong> " +
+            (occupied ? "OCCUPIED" : "EMPTY") +
+            " | Teacher: " + (state.teacher ? "YES (" + state.activeTeacherName + ")" : "NO") +
+            " | Students: " + state.students.length +
+            " | Last Roll: " + state.lastRollEvent +
+            " | Lights: " + (state.lights ? "ON" : "OFF") +
+            " | Fans: " + (state.fans ? "ON" : "OFF") +
+            " | Temp: " + state.temp + "°C";
+        }
+      }
+
+      function applyScenario(scenario) {
+        state.students = [];
+        state.nextRollNum = 1;
+        state.lastRollEvent = "NONE";
+        state.teacher = false;
+        state.activeTeacherName = null;
+        state.unknownVisitors = 0;
+        state.temp = 26;
+        state.lights = false;
+        state.fans = false;
+        state.manualLights = false;
+        state.manualFans = false;
+        state.logs = [];
+
+        if (scenario === "teacher-entry") {
+          state.teacher = true;
+          state.activeTeacherName = "Ms. Rao (STF-101)";
+          state.students = ["R-01", "R-02", "R-03"];
+          state.nextRollNum = 4;
+          state.lastRollEvent = "IN: R-03";
+          state.lastEdgeEvent = "Matched Ms. Rao [STF-101] + detected R-01..R-03";
+          addLog("Opened session with Ms. Rao and Rolls R-01 to R-03.");
+          showAlert("Session opened: Ms. Rao verified; Rolls R-01, R-02, R-03 inside.", false);
+        } else if (scenario === "full-class") {
+          for (var r = 1; r <= 25; r++) {
+            state.students.push(formatRoll(r));
+          }
+          state.nextRollNum = 26;
+          state.lastRollEvent = "IN: R-25";
+          state.temp = 30;
+          state.lastEdgeEvent = "Batch scan loaded Rolls R-01 through R-25";
+          addLog("Opened active class session: 25 students (R-01 to R-25), 30°C.");
+          showAlert("Active class opened: 25 students (R-01 to R-25) at 30°C.", false);
+        } else {
+          state.lastEdgeEvent = "Idle • Local Staff DB loaded • Raw Video Stored: NO";
+          addLog("Opened empty classroom web session.");
+          showAlert("Empty classroom opened. Enter students to detect roll numbers.", false);
+        }
+
+        render();
+      }
+
+      function openWebApp() {
+        var portal = document.getElementById("launchPortal");
+        var app = document.getElementById("classroomApp");
+        applyScenario(selectedScenario);
+        if (portal) portal.classList.add("hidden");
+        if (app) app.classList.remove("hidden");
+      }
+
+      function backToPortal() {
+        var portal = document.getElementById("launchPortal");
+        var app = document.getElementById("classroomApp");
+        if (app) app.classList.add("hidden");
+        if (portal) portal.classList.remove("hidden");
+      }
+
+      function recognizeStaff(staffId) {
+        var profile = enrolledStaff[staffId];
+        if (!profile || profile.role !== "teacher") return;
+        state.teacher = true;
+        state.activeTeacherName = profile.name + " (" + staffId + ")";
+        state.lastEdgeEvent =
+          "Matched " + profile.name + " [" + staffId + ", role: " + profile.role + ", conf: " + profile.confidence + "]";
+        addLog("Edge camera verified " + state.activeTeacherName + " entering Room 101.");
+        showAlert("Verified teacher entry: " + state.activeTeacherName + " (" + profile.confidence + " match).", false);
+        render();
+      }
+
+      function handleAction(action, triggerEl) {
+        var inputEl = document.getElementById("rollInput");
+
+        switch (action) {
+          case "open-web-app":
+            openWebApp();
+            break;
+
+          case "back-to-portal":
+            backToPortal();
+            break;
+
+          case "edge-rao":
+            recognizeStaff("STF-101");
+            break;
+
+          case "edge-nair":
+            recognizeStaff("STF-102");
+            break;
+
+          case "edge-unknown":
+            state.unknownVisitors += 1;
+            state.lastEdgeEvent = "Unrecognized / low-light scan logged as unverified visitor";
+            addLog("Edge scan flagged an unrecognized/low-light person entering Room 101.");
+            showAlert("Alert: Unrecognized or low-light entry detected. Manual verification recommended.", true);
+            render();
+            break;
+
+          case "edge-exit-staff":
+            if (state.teacher) {
+              var prevName = state.activeTeacherName || "Teacher";
+              state.teacher = false;
+              state.activeTeacherName = null;
+              state.lastEdgeEvent = "Staff exit recorded for " + prevName;
+              addLog(prevName + " exited Room 101.");
+              showAlert(prevName + " exited the classroom.", false);
+            } else {
+              showAlert("No verified teacher is currently inside to exit.", false);
+            }
+            render();
+            break;
+
+          case "enter": {
+            var typedRoll = inputEl ? normalizeRollInput(inputEl.value) : null;
+            var rollToAdd = typedRoll || getNextAvailableRoll();
+
+            if (state.students.indexOf(rollToAdd) !== -1) {
+              showAlert("Roll No. " + rollToAdd + " is already inside Room 101.", true);
+              return;
+            }
+
+            state.students.push(rollToAdd);
+            state.lastRollEvent = "IN: " + rollToAdd;
+            state.lastEdgeEvent = "Student entry detected — Roll No. " + rollToAdd;
+            if (inputEl) inputEl.value = "";
+            addLog("Student Roll No. " + rollToAdd + " entered Room 101 (Total: " + state.students.length + ").");
+            showAlert("Roll No. " + rollToAdd + " detected entering Room 101.", false);
+            render();
+            break;
+          }
+
+          case "exit": {
+            if (state.students.length === 0) {
+              showAlert("No students are inside Room 101 to exit.", false);
+              return;
+            }
+            var specifiedRoll = inputEl ? normalizeRollInput(inputEl.value) : null;
+            if (specifiedRoll) {
+              if (inputEl) inputEl.value = "";
+              exitStudentByRoll(specifiedRoll);
+              return;
+            }
+            var departingRoll = state.students[state.students.length - 1];
+            exitStudentByRoll(departingRoll);
+            break;
+          }
+
+          case "exit-roll": {
+            var targetRoll = triggerEl ? triggerEl.getAttribute("data-roll") : null;
+            if (targetRoll) {
+              exitStudentByRoll(targetRoll);
+            }
+            break;
+          }
+
+          case "teacher":
+            if (!state.teacher) {
+              state.teacher = true;
+              state.activeTeacherName = "Manual Override";
+              addLog("Teacher marked IN manually.");
+              showAlert("Teacher marked present manually.", false);
+            } else {
+              state.teacher = false;
+              state.activeTeacherName = null;
+              addLog("Teacher marked OUT manually.");
+              showAlert("Teacher marked absent manually.", false);
+            }
+            render();
+            break;
+
+          case "cold":
+            state.temp = 20;
+            addLog("Room temperature set to 20°C.");
+            showAlert("Temperature set to 20°C.", false);
+            render();
+            break;
+
+          case "warm":
+            state.temp = 32;
+            addLog("Room temperature set to 32°C.");
+            showAlert("Temperature set to 32°C.", false);
+            render();
+            break;
+
+          case "auto":
+            state.manualLights = false;
+            state.manualFans = false;
+            addLog("Lights and fans returned to AUTO mode.");
+            showAlert("Climate and lighting switched back to AUTO mode.", false);
+            render();
+            break;
+
+          case "phone-lights":
+            if (!isOccupied()) {
+              showAlert("Room is empty — lights stay OFF until someone enters.", false);
+              render();
+              return;
+            }
+            state.manualLights = true;
+            state.lights = !state.lights;
+            addLog("Phone override: Lights turned " + (state.lights ? "ON" : "OFF") + ".");
+            showAlert("Remote phone override: Lights " + (state.lights ? "ON" : "OFF") + " (MANUAL).", false);
+            render();
+            break;
+
+          case "phone-fans":
+            if (!isOccupied()) {
+              showAlert("Room is empty — fans stay OFF until someone enters.", false);
+              render();
+              return;
+            }
+            state.manualFans = true;
+            state.fans = !state.fans;
+            addLog("Phone override: Fans turned " + (state.fans ? "ON" : "OFF") + ".");
+            showAlert("Remote phone override: Fans " + (state.fans ? "ON" : "OFF") + " (MANUAL).", false);
+            render();
+            break;
+
+          case "preset":
+            applyScenario("full-class");
+            break;
+
+          case "reset":
+            applyScenario("empty");
+            if (inputEl) inputEl.value = "";
+            break;
+        }
+      }
+
+      document.addEventListener("click", function (event) {
+        var target = event.target instanceof Element ? event.target : null;
+        if (!target) return;
+
+        var scenarioCard = target.closest(".scenario-card[data-scenario]");
+        if (scenarioCard) {
+          selectedScenario = scenarioCard.getAttribute("data-scenario");
+          var cards = document.querySelectorAll(".scenario-card");
+          for (var i = 0; i < cards.length; i++) {
+            cards[i].classList.remove("selected");
+          }
+          scenarioCard.classList.add("selected");
+          return;
+        }
+
+        var btn = target.closest("button[data-action]");
+        if (!btn) return;
+        handleAction(btn.getAttribute("data-action"), btn);
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>

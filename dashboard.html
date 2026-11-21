@@ -1,0 +1,105 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SYNAPSE Teacher Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f1f5f9;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #17365d;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th, td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background: #17365d;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>SYNAPSE Teacher Dashboard</h1>
+    <p>Smart Classroom Attendance Management</p>
+
+    <div class="card">
+        <h2>Student Attendance Records</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Roll Number</th>
+                    <th>Student Name</th>
+                    <th>Entry Time</th>
+                    <th>Exit Time</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="attendanceData">
+                <tr>
+                    <td colspan="5">Loading attendance...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        async function loadAttendance() {
+            const response = await fetch("/attendance");
+            const records = await response.json();
+
+            const table = document.getElementById("attendanceData");
+            table.innerHTML = "";
+
+            if (records.length === 0) {
+                table.innerHTML =
+                    "<tr><td colspan='5'>No attendance records found</td></tr>";
+                return;
+            }
+
+            records.forEach(record => {
+                const row = document.createElement("tr");
+
+                [
+                    record.roll_number,
+                    record.student_name,
+                    record.entry_time || "-",
+                    record.exit_time || "Not exited",
+                    record.status
+                ].forEach(value => {
+                    const cell = document.createElement("td");
+                    cell.textContent = value;
+                    row.appendChild(cell);
+                });
+
+                table.appendChild(row);
+            });
+        }
+
+        loadAttendance();
+    </script>
+
+</body>
+</html>
